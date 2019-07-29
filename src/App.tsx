@@ -1,48 +1,123 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 // import "./App.css";
 
-import { Film } from "./films.d";
+// import { Film } from "./films.d";
 
-// https://swapi.co/api/films/
+interface Film {
+  title: string;
+}
 
-const App: React.FC = () => {
-  const [data, setData] = useState("");
-  const [query, setQuery] = useState("redux");
-  const [url, setUrl] = useState("https://swapi.co/api/films/?search=New");
-  const [isLoading, setIsLoading] = useState(false);
+type AppAction = {
+  type: "FETCH_INIT" | "FETCH_SUCCESS" | "FETCH_FAILURE";
+  payload: Film[];
+};
+
+type AppState = {
+  isLoading: boolean;
+  isError: boolean;
+  data: Film[];
+};
+
+const dataFetchReducer = (state: AppState, action: AppAction) => {
+  switch (action.type) {
+    case "FETCH_INIT":
+      return {
+        ...state,
+        isLoading: true,
+        isError: false
+      };
+    case "FETCH_SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        isError: false,
+        data: []
+      };
+    case "FETCH_FAILURE":
+      return {
+        ...state,
+        isLoading: false,
+        isError: true
+      };
+    default:
+      throw new Error();
+  }
+};
+
+const useSwapi = (initialUrl: string, initialData: Film[]) => {
+  const [url, setUrl] = useState(initialUrl);
+
+  const [state, dispatch] = useReducer(dataFetchReducer, {
+    isLoading: false,
+    isError: false,
+    data: initialData
+  });
 
   useEffect(() => {
+    let didCancel = false;
+
     const fetchData = async () => {
-      setIsLoading(true);
+      dispatch({ type: "FETCH_INIT", payload: [] });
 
-      const res = await fetch(url);
-      const jsonRes = await res.json();
-      console.log("----jsonRes: ", jsonRes);
-      const results = jsonRes.results as Film[];
-      setData(jsonRes.results[0].title);
+      try {
+        const res = await fetch(url);
+        const jsonRes = await res.json();
 
-      setIsLoading(false);
+        const results = jsonRes.results as Film[];
+        if (!didCancel) {
+          dispatch({ type: "FETCH_SUCCESS", payload: results });
+        }
+      } catch (err) {
+        if (!didCancel) {
+          dispatch({ type: "FETCH_FAILURE", payload: [] });
+        }
+        console.error(err);
+      }
     };
 
     fetchData();
+    return () => {
+      didCancel = true;
+    };
   }, [url]);
+
+  return [state, setUrl];
+};
+
+const App: React.FC = () => {
+  const [query, setQuery] = useState("hope");
+
+  const [stuff, doFetch] = useSwapi("https://swapi.co/api/films/?search=hope", [
+    { title: "" }
+  ]);
+
+  if (typeof stuff === "function" || typeof doFetch !== "function")
+    return <h1>Error</h1>;
+
+  const { isError, isLoading, data } = stuff;
+
+  const title = data[0] && data[0].title;
 
   return (
     <div className="App">
       <header className="App-header" />
-      <input
-        type="text"
-        value={query}
-        onChange={event => setQuery(event.target.value)}
-      />
-      <button
-        type="button"
-        onClick={() => setUrl(`https://swapi.co/api/films/?search=${query}`)}
+      <form
+        onSubmit={event => {
+          doFetch(`https://swapi.co/api/films/?search=${query}`);
+          event.preventDefault();
+        }}
       >
-        Search
-      </button>
+        <input
+          type="text"
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+        />
+        <button type="button">Search</button>
+      </form>
 
-      {isLoading ? <div>Loading ...</div> : <h1>{data}</h1>}
+      {isError && <div>Something went wrong ...</div>}
+
+      {isLoading ? <div>Loading ...</div> : <h1>{title}</h1>}
     </div>
   );
 };
