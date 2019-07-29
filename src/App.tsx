@@ -31,7 +31,7 @@ const dataFetchReducer = (state: AppState, action: AppAction) => {
         ...state,
         isLoading: false,
         isError: false,
-        data: []
+        data: action.payload
       };
     case "FETCH_FAILURE":
       return {
