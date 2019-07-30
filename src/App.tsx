@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useReducer } from "react";
 import Select from "react-select";
 import { ValueType } from "react-select/src/types";
+
+import { Crawl } from "./Crawl";
 // import "./App.css";
 
 // import { Film } from "./films.d";
@@ -101,22 +103,12 @@ const useSwapi = (initialUrl: string, initialData: Film[]) => {
   return [state, setUrl];
 };
 
-interface CrawlProps {
-  title: string;
-  crawl: string;
-}
-
-const Crawl: React.SFC<CrawlProps> = ({ title, crawl }) => {
-  return (
-    <article>
-      <h1>{title}</h1>
-      <p>{crawl}</p>
-    </article>
-  );
-};
-
 const App: React.FC = () => {
-  const [film, setFilm] = useState({ title: "", opening_crawl: "" });
+  const [film, setFilm] = useState({
+    title: "",
+    opening_crawl: "Test"
+  });
+  const [fade, setFade] = useState(false);
 
   const { title, opening_crawl } = film;
 
@@ -151,6 +143,7 @@ const App: React.FC = () => {
           const { film } = filmOption;
 
           setFilm(film);
+          setFade(true);
         }}
         options={options}
       />
@@ -160,7 +153,12 @@ const App: React.FC = () => {
       {isLoading ? (
         <div>Loading ...</div>
       ) : (
-        <Crawl title={title} crawl={opening_crawl} />
+        <Crawl
+          title={title}
+          crawl={opening_crawl}
+          fade={fade}
+          onFadeEnd={() => setFade(false)}
+        />
       )}
     </div>
   );
