@@ -1,10 +1,27 @@
 import React, { useState, useEffect, useReducer } from "react";
+import Select from "react-select";
+import { ValueType } from "react-select/src/types";
 // import "./App.css";
 
 // import { Film } from "./films.d";
 
+// Need this for Array.isArray to work with typescrip readonly arrays
+// relevent issue here: https://github.com/microsoft/TypeScript/issues/17002#issuecomment-494937708
+declare global {
+  interface ArrayConstructor {
+    isArray(arg: ReadonlyArray<any> | any): arg is ReadonlyArray<any>;
+  }
+}
+
 interface Film {
   title: string;
+  opening_crawl: string;
+}
+
+interface FilmOption {
+  value: string;
+  label: string;
+  film: Film;
 }
 
 type AppAction = {
@@ -84,40 +101,67 @@ const useSwapi = (initialUrl: string, initialData: Film[]) => {
   return [state, setUrl];
 };
 
-const App: React.FC = () => {
-  const [query, setQuery] = useState("hope");
+interface CrawlProps {
+  title: string;
+  crawl: string;
+}
 
-  const [stuff, doFetch] = useSwapi("https://swapi.co/api/films/?search=hope", [
-    { title: "" }
+const Crawl: React.SFC<CrawlProps> = ({ title, crawl }) => {
+  return (
+    <article>
+      <h1>{title}</h1>
+      <p>{crawl}</p>
+    </article>
+  );
+};
+
+const App: React.FC = () => {
+  const [film, setFilm] = useState({ title: "", opening_crawl: "" });
+
+  const { title, opening_crawl } = film;
+
+  const [fetchState, doFetch] = useSwapi("https://swapi.co/api/films", [
+    { title: "", opening_crawl: "" }
   ]);
 
-  if (typeof stuff === "function" || typeof doFetch !== "function")
+  if (typeof fetchState === "function" || typeof doFetch !== "function")
     return <h1>Error</h1>;
 
-  const { isError, isLoading, data } = stuff;
+  const { isError, isLoading, data } = fetchState;
 
-  const title = data[0] && data[0].title;
+  const options: FilmOption[] = data.map(option => {
+    return {
+      value: option.title,
+      label: option.title,
+      film: option
+    };
+  });
+
+  console.log(options);
 
   return (
     <div className="App">
       <header className="App-header" />
-      <form
-        onSubmit={event => {
-          doFetch(`https://swapi.co/api/films/?search=${query}`);
-          event.preventDefault();
+      <Select
+        defaultValue={options[0]}
+        onChange={(filmOption: ValueType<FilmOption>) => {
+          if (!filmOption || Array.isArray(filmOption)) {
+            return;
+          }
+          const { film } = filmOption;
+
+          setFilm(film);
         }}
-      >
-        <input
-          type="text"
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-        />
-        <button type="button">Search</button>
-      </form>
+        options={options}
+      />
 
       {isError && <div>Something went wrong ...</div>}
 
-      {isLoading ? <div>Loading ...</div> : <h1>{title}</h1>}
+      {isLoading ? (
+        <div>Loading ...</div>
+      ) : (
+        <Crawl title={title} crawl={opening_crawl} />
+      )}
     </div>
   );
 };
