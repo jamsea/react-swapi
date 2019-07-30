@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 
 import styles from "./Crawl.module.css";
 
@@ -19,6 +19,7 @@ export const Crawl: React.SFC<CrawlProps> = ({
 }) => {
   return (
     <Fragment>
+      <div id="fade" className={styles.fade} />
       <section className={styles.starWars}>
         <article
           className={fade ? styles.crawl : ""}

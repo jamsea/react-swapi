@@ -106,7 +106,7 @@ const useSwapi = (initialUrl: string, initialData: Film[]) => {
 const App: React.FC = () => {
   const [film, setFilm] = useState({
     title: "",
-    opening_crawl: "Test"
+    opening_crawl: ""
   });
   const [fade, setFade] = useState(false);
 
@@ -131,10 +131,12 @@ const App: React.FC = () => {
 
   console.log(options);
 
+  const selectStyles = { menu: (styles: any) => ({ ...styles, zIndex: 999 }) };
+
   return (
     <div className="App">
-      <header className="App-header" />
       <Select
+        styles={selectStyles}
         defaultValue={options[0]}
         onChange={(filmOption: ValueType<FilmOption>) => {
           if (!filmOption || Array.isArray(filmOption)) {
