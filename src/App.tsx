@@ -144,6 +144,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <Select
+        classNamePrefix="list"
         styles={selectStyles}
         defaultValue={options[0]}
         onChange={(filmOption: ValueType<FilmOption>) => {
