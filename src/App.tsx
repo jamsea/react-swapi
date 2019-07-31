@@ -5,7 +5,7 @@ import { ValueType } from "react-select/src/types";
 import { Crawl } from "./Crawl";
 // import "./App.css";
 
-// import { Film } from "./films.d";
+import { Film } from "./films.d";
 
 // Need this for Array.isArray to work with typescrip readonly arrays
 // relevent issue here: https://github.com/microsoft/TypeScript/issues/17002#issuecomment-494937708
@@ -13,11 +13,6 @@ declare global {
   interface ArrayConstructor {
     isArray(arg: ReadonlyArray<any> | any): arg is ReadonlyArray<any>;
   }
-}
-
-interface Film {
-  title: string;
-  opening_crawl: string;
 }
 
 interface FilmOption {
@@ -63,13 +58,18 @@ const dataFetchReducer = (state: AppState, action: AppAction) => {
   }
 };
 
-const useSwapi = (initialUrl: string, initialData: Film[]) => {
-  const [url, setUrl] = useState(initialUrl);
+/**
+ * This sends a call to the Star Wars API
+ * @param initialRoute See https://www.swapi.co/
+ * @param initialFilms Initial film data
+ */
+const useSwapi = (initialFilms: Film[]) => {
+  const url = "https://swapi.co/api/films/";
 
   const [state, dispatch] = useReducer(dataFetchReducer, {
     isLoading: false,
     isError: false,
-    data: initialData
+    data: initialFilms
   });
 
   useEffect(() => {
@@ -98,26 +98,36 @@ const useSwapi = (initialUrl: string, initialData: Film[]) => {
     return () => {
       didCancel = true;
     };
-  }, [url]);
+  }, [url]); // Only fire if the url changes, not on every render
 
-  return [state, setUrl];
+  return state;
 };
 
 const App: React.FC = () => {
-  const [film, setFilm] = useState({
+  const emptyFilm: Film = {
+    characters: [],
+    created: "",
+    director: "",
+    edited: "",
+    episode_id: 0,
+    opening_crawl: "",
+    planets: [],
+    producer: "",
+    release_date: "",
+    species: [],
+    starships: [],
     title: "",
-    opening_crawl: ""
-  });
-  const [fade, setFade] = useState(false);
+    url: "",
+    vehicles: []
+  };
 
-  const { title, opening_crawl } = film;
+  const fetchState = useSwapi([emptyFilm]);
 
-  const [fetchState, doFetch] = useSwapi("https://swapi.co/api/films", [
-    { title: "", opening_crawl: "" }
-  ]);
+  const [{ title, opening_crawl: openingCrawlText }, setFilm] = useState(
+    emptyFilm
+  );
 
-  if (typeof fetchState === "function" || typeof doFetch !== "function")
-    return <h1>Error</h1>;
+  const [crawl, startCrawl] = useState(false);
 
   const { isError, isLoading, data } = fetchState;
 
@@ -129,9 +139,7 @@ const App: React.FC = () => {
     };
   });
 
-  console.log(options);
-
-  const selectStyles = { menu: (styles: any) => ({ ...styles, zIndex: 999 }) };
+  const selectStyles = { menu: (styles: any) => ({ ...styles, zIndex: 2 }) };
 
   return (
     <div className="App">
@@ -145,21 +153,21 @@ const App: React.FC = () => {
           const { film } = filmOption;
 
           setFilm(film);
-          setFade(true);
+          startCrawl(true);
         }}
         options={options}
       />
 
-      {isError && <div>Something went wrong ...</div>}
+      {isError && <div>Something went wrong, try reloading.</div>}
 
       {isLoading ? (
         <div>Loading ...</div>
       ) : (
         <Crawl
           title={title}
-          crawl={opening_crawl}
-          fade={fade}
-          onFadeEnd={() => setFade(false)}
+          openingCrawlText={openingCrawlText}
+          crawl={crawl}
+          onCrawlEnd={() => startCrawl(false)}
         />
       )}
     </div>
