@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useReducer } from "react";
 import Select from "react-select";
 import { ValueType } from "react-select/src/types";
-
 import { Crawl } from "./Crawl";
-// import "./App.css";
-
 import { Film } from "./films.d";
 
-// Need this for Array.isArray to work with typescrip readonly arrays
+// Need this for Array.isArray to work with typescript readonly arrays
 // relevent issue here: https://github.com/microsoft/TypeScript/issues/17002#issuecomment-494937708
 declare global {
   interface ArrayConstructor {
@@ -21,16 +18,16 @@ interface FilmOption {
   film: Film;
 }
 
-type AppAction = {
+interface AppAction {
   type: "FETCH_INIT" | "FETCH_SUCCESS" | "FETCH_FAILURE";
   payload: Film[];
-};
+}
 
-type AppState = {
+interface AppState {
   isLoading: boolean;
   isError: boolean;
   data: Film[];
-};
+}
 
 const dataFetchReducer = (state: AppState, action: AppAction) => {
   switch (action.type) {
@@ -90,6 +87,8 @@ const useSwapi = (initialFilms: Film[]) => {
         if (!didCancel) {
           dispatch({ type: "FETCH_FAILURE", payload: [] });
         }
+
+        // In real life we could track this error in something like New Relic
         console.error(err);
       }
     };

@@ -9,8 +9,6 @@ interface CrawlProps {
   onCrawlEnd: () => void;
 }
 
-//   <div className={styles.fade} />
-
 export const Crawl: React.SFC<CrawlProps> = ({
   title,
   openingCrawlText: openingCrawl,
