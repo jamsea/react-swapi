@@ -35,20 +35,20 @@ const dataFetchReducer = (state: AppState, action: AppAction) => {
       return {
         ...state,
         isLoading: true,
-        isError: false
+        isError: false,
       };
     case "FETCH_SUCCESS":
       return {
         ...state,
         isLoading: false,
         isError: false,
-        data: action.payload
+        data: action.payload,
       };
     case "FETCH_FAILURE":
       return {
         ...state,
         isLoading: false,
-        isError: true
+        isError: true,
       };
     default:
       throw new Error();
@@ -61,12 +61,12 @@ const dataFetchReducer = (state: AppState, action: AppAction) => {
  * @param initialFilms Initial film data
  */
 const useSwapi = (initialFilms: Film[]) => {
-  const url = "https://swapi.co/api/films/";
+  const url = "https://swapi.dev/api/films/";
 
   const [state, dispatch] = useReducer(dataFetchReducer, {
     isLoading: false,
     isError: false,
-    data: initialFilms
+    data: initialFilms,
   });
 
   useEffect(() => {
@@ -117,7 +117,7 @@ const App: React.FC = () => {
     starships: [],
     title: "",
     url: "",
-    vehicles: []
+    vehicles: [],
   };
 
   const fetchState = useSwapi([emptyFilm]);
@@ -130,11 +130,11 @@ const App: React.FC = () => {
 
   const { isError, isLoading, data } = fetchState;
 
-  const options: FilmOption[] = data.map(option => {
+  const options: FilmOption[] = data.map((option) => {
     return {
       value: option.title,
       label: option.title,
-      film: option
+      film: option,
     };
   });
 
